@@ -1,225 +1,160 @@
-NProgress
-=========
+NProgress-X
+===========
 
-[![Status](https://api.travis-ci.org/rstacruz/nprogress.svg?branch=master)](http://travis-ci.org/rstacruz/nprogress) 
-[![npm version](https://img.shields.io/npm/v/nprogress.png)](https://npmjs.org/package/nprogress "View this project on npm")
-[![jsDelivr Hits](https://data.jsdelivr.com/v1/package/npm/nprogress/badge?style=rounded)](https://www.jsdelivr.com/package/npm/nprogress)
+Slim progress bars that you can append to any part of your DOM.
 
-> Minimalist progress bar
+Inspired by Google, YouTube, and Medium. Based on and forked from [Rico Sta. Cruz](http://ricostacruz.com)'s [NProgress](http://github.com/rstacruz).
 
-Slim progress bars for Ajax'y applications. Inspired by Google, YouTube, and
-Medium.
 
-Installation
-------------
+# Introduction
+I came across [Rico Sta. Cruz](http://ricostacruz.com)'s awesome [NProgress](http://github.com/rstacruz) while searching the web for cool tools to improve the 
+looks and responsiveness of the web application my colleague [codecoding](http://github.com/codecoding) and I were working on at the time. 
+We had many many screens that displayed multiple controls which loaded data dynamically through AJAX requests. All these controls were
+independent from one another, and we thought it would be cool to display an animated progress bar on top of each of them. So we took 
+[Rico Sta. Cruz](http://ricostacruz.com)'s [NProgress](http://github.com/rstacruz), forked it, refactored it, added to it, and created our very own 
+NProgress-X: a progress bar that you can append to any part of your DOM.
 
-Add [nprogress.js] and [nprogress.css] to your project.
+NOTE: NProgress-X is so different to the original NProgress (and purposely so) that I have never thought of doing a pull request on GitHub, and never will.
 
-```html
-<script src='nprogress.js'></script>
-<link rel='stylesheet' href='nprogress.css'/>
+
+# Installation
+Add jQuery (1.8 or above), [nprogress.js] and [nprogress.css] to your project.
+
+
+# Basic usage
+I refactored the original NProgress mainly for the purpose of having multiple instances of it at once on the same page, so NProgress-X must be instantiated in order to be used. Like this:
+
+```javascript
+var np = new NProgress();
 ```
 
-NProgress is available via [bower] and [npm].
 
-    $ npm install --save nprogress
+# Configuration
+I've kept most of the original settings and added a few more. Check them out.
 
-Also available via [unpkg] CDN:
+### minimum
+Minimum percentage of increment. Default value is 0.05.
 
-- https://unpkg.com/nprogress@0.2.0/nprogress.js
-- https://unpkg.com/nprogress@0.2.0/nprogress.css
+### easing
+CSS easing string for the animation settings. Default value is 'ease'.
 
-[bower]: http://bower.io/search/?q=nprogress
-[npm]: https://www.npmjs.org/package/nprogress
-[unpkg]: https://unpkg.com/
+### speed
+Animation speed in milliseconds. Default value is 200.
 
-Basic usage
------------
+### trickle
+Set to false to turn off the trickling (automatic progress increment). True by default.
 
-Simply call `start()` and `done()` to control the progress bar.
+### trickleRate
+How much to increase per trickle. Default value is 0.02.
 
-~~~ js
-NProgress.start();
-NProgress.done();
-~~~
+### trickleSpeed
+How often to trickle, in milliseconds. Default value is 800.
 
-### Turbolinks (version 5+)
-Ensure you're using Turbolinks 5+, and use 
-this: (explained [here](https://github.com/rstacruz/nprogress/issues/8#issuecomment-239107109))
+### container
+jQuery selector of the container DOM element. The progress bar will be PREPENDED TO this container (this means it will be inserted as the first child of the container element). 
+If you do not set this parameter -or if you use the selector 'body'- the progress bar will be inserted BEFORE the body (on the very top of the page).
 
-~~~ js
-$(document).on('turbolinks:click', function() {
-  NProgress.start();
+### renderOnInit
+Set to true to render the progress bar upon instantiation (though it will remain hidden until the progress is set). False by default.
+
+### removeOnFinish
+Set to true to remove the progress bar from the DOM when it reaches 100%. If you're gonna be reusing it a lot, you might as well leave it there -hidden- rather than creating it
+every time you want to display it. True by default.
+
+### randomTrickle
+Set to true to use random trickle increments. False by default.
+
+### startOnInit
+Set to true to start running the progress bar's progress upon instantiation. False by default.
+
+### template
+HTML markup used to render the progress bar. To keep the progress bar working, keep an element with `role='bar'` in there.
+
+
+Example:
+```javascript
+var np = new NProgress({
+	minimum: 0.08,
+	easing: 'linear',
+	speed: 500,
+	trickle: true,
+	trickleRate: 0.05,
+	trickleSpeed: 500,
+	container: '#divContainer',
+	renderOnInit: true,
+	removeOnFinish: false,
+	startOnInit: true,
+	template: '<div class="foo" role="bar"></div>'
 });
-$(document).on('turbolinks:render', function() {
-  NProgress.done();
-  NProgress.remove();
+```
+
+# Methods
+
+### configure
+Override the initial configuration of an `nprogress` instance anytime by using this method.
+
+```javascript
+var np = new NProgress();
+np.configure({
+    trickleRate: 0.05,
+    trickleSpeed: 500,
+    startOnInit: true
 });
-~~~
+```
 
-### Turbolinks (version 3 and below)
-Ensure you're using Turbolinks 1.3.0+, and use 
-this: (explained [here](https://github.com/rstacruz/nprogress/issues/8#issuecomment-23010560))
+### set
+Sets the progress bar status, where _n_ is a number from `0.0` to `1.0`.
 
-~~~ js
-$(document).on('page:fetch',   function() { NProgress.start(); });
-$(document).on('page:change',  function() { NProgress.done(); });
-$(document).on('page:restore', function() { NProgress.remove(); });
-~~~
+### isStarted
+This method will tell you whether the progress bar is already running or not.
 
-### Pjax
-Try this: (explained [here](https://github.com/rstacruz/nprogress/issues/22#issuecomment-36540472))
+### start
+Shows the progress bar. This is the same as setting the status to 0%, except that it doesn't go backwards.
 
-~~~ js
-$(document).on('pjax:start', function() { NProgress.start(); });
-$(document).on('pjax:end',   function() { NProgress.done();  });
-~~~
+### done
+Hides the progress bar. This is *sort of* the same as setting the status to 100%, with the difference being `.done()` makes some placebo effect of some realistic motion by executing an animation. By passing `true` to `.done()`, it will show the progress bar even if it's not being shown. (The default behavior is that `.done()` will not do anything if the progress bar is not started.
 
-Ideas
------
+### stop
+Actually it's just a call to `.reset()`, which stops the progress bar's progress regardless of what its current status is. But the name is more intuitive and the purpose of this is to give the idea that something went wrong and therefore the progress bar could not reach its 100% successfully.
 
+### pause
+Pause the progress bar's progress. It will start running again and pick up from where it left off by calling `.keepGoing()`.
+
+### keepGoing
+Starts running the progress bar's progress again after it's been paused. It picks up status from where it left off.
+
+### reset
+Reset's the progress bar after it's done, so it can start running again anytime.
+
+### inc
+Increments the progress bar's percentage by a specific amount.
+
+### trickle
+Increments the progress bar's percentage by the specified `trickleRate` if `randomTrickle` was set to `false`, or by a random amount if `randomTrickle` was set to `true`.
+
+### remove
+Removes the progress bar from the DOM. Opposite of `.render()`.
+
+### demo
+Runs the progress bar in demo mode.
+
+# Ideas
  * Add progress to your Ajax calls! Bind it to the jQuery `ajaxStart` and
  `ajaxStop` events.
 
  * Make a fancy loading bar even without Turbolinks/Pjax! Bind it to
  `$(document).ready` and `$(window).load`.
 
-Advanced usage
---------------
 
-__Percentages:__ To set a progress percentage, call `.set(n)`, where *n* is a
-number between `0..1`.
-
-~~~ js
-NProgress.set(0.0);     // Sorta same as .start()
-NProgress.set(0.4);
-NProgress.set(1.0);     // Sorta same as .done()
-~~~
-
-__Incrementing:__ To increment the progress bar, just use `.inc()`. This
-increments it with a random amount. This will never get to 100%: use it for
-every image load (or similar).
-
-~~~ js
-NProgress.inc();
-~~~
-
-If you want to increment by a specific value, you can pass that as a parameter:
-
-~~~ js
-NProgress.inc(0.2);    // This will get the current status value and adds 0.2 until status is 0.994
-~~~
-
-__Force-done:__ By passing `true` to `done()`, it will show the progress bar
-even if it's not being shown. (The default behavior is that *.done()* will not
-    do anything if *.start()* isn't called)
-
-~~~ js
-NProgress.done(true);
-~~~
-
-__Get the status value:__ To get the status value, use `.status`
-
-Configuration
--------------
-
-#### `minimum`
-Changes the minimum percentage used upon starting. (default: `0.08`)
-
-~~~ js
-NProgress.configure({ minimum: 0.1 });
-~~~
-
-#### `template`
-You can change the markup using `template`. To keep the progress
-bar working, keep an element with `role='bar'` in there. See the [default template]
-for reference.
-
-~~~ js
-NProgress.configure({
-  template: "<div class='....'>...</div>"
-});
-~~~
-
-#### `easing` and `speed`
-Adjust animation settings using *easing* (a CSS easing string)
-and *speed* (in ms). (default: `ease` and `200`)
-
-~~~ js
-NProgress.configure({ easing: 'ease', speed: 500 });
-~~~
-
-#### `trickle`
-Turn off the automatic incrementing behavior by setting this to `false`. (default: `true`)
-
-~~~ js
-NProgress.configure({ trickle: false });
-~~~
-
-#### `trickleSpeed`
-Adjust how often to trickle/increment, in ms.
-
-~~~ js
-NProgress.configure({ trickleSpeed: 200 });
-~~~
-
-#### `showSpinner`
-Turn off loading spinner by setting it to false. (default: `true`)
-
-~~~ js
-NProgress.configure({ showSpinner: false });
-~~~
-
-#### `parent`
-specify this to change the parent container. (default: `body`)
-
-~~~ js
-NProgress.configure({ parent: '#container' });
-~~~
-
-Customization
--------------
-
+# Customization
 Just edit `nprogress.css` to your liking. Tip: you probably only want to find
-and replace occurrences of `#29d`.
+and replace occurances of `#29d`.
 
 The included CSS file is pretty minimal... in fact, feel free to scrap it and
 make your own!
 
-Resources
----------
 
- * [New UI Pattern: Website Loading Bars](http://www.usabilitypost.com/2013/08/19/new-ui-pattern-website-loading-bars/) (usabilitypost.com)
+# Acknowledgements
+Give credit where it's due!
 
-Support
--------
-
-__Bugs and requests__: submit them through the project's issues tracker.<br>
-[![Issues](http://img.shields.io/github/issues/rstacruz/nprogress.svg)]( https://github.com/rstacruz/nprogress/issues )
-
-__Questions__: ask them at StackOverflow with the tag *nprogress*.<br>
-[![StackOverflow](http://img.shields.io/badge/stackoverflow-nprogress-brightgreen.svg)]( http://stackoverflow.com/questions/tagged/nprogress )
-
-__Chat__: join us at gitter.im.<br>
-[![Chat](http://img.shields.io/badge/gitter-rstacruz/nprogress-brightgreen.svg)]( https://gitter.im/rstacruz/nprogress )
-
-[default template]: https://github.com/rstacruz/nprogress/blob/master/nprogress.js#L31
-[Turbolinks]: https://github.com/rails/turbolinks
-[nprogress.js]: http://ricostacruz.com/nprogress/nprogress.js
-[nprogress.css]: http://ricostacruz.com/nprogress/nprogress.css
-
-Thanks
-------
-
-**NProgress** © 2013-2017, Rico Sta. Cruz. Released under the [MIT License].<br>
-Authored and maintained by Rico Sta. Cruz with help from [contributors].
-
-> [ricostacruz.com](http://ricostacruz.com) &nbsp;&middot;&nbsp;
-> GitHub [@rstacruz](https://github.com/rstacruz) &nbsp;&middot;&nbsp;
-> Twitter [@rstacruz](https://twitter.com/rstacruz)
-
-[MIT License]: http://mit-license.org/
-[contributors]: http://github.com/rstacruz/nprogress/contributors
-
-[![](https://img.shields.io/github/followers/rstacruz.svg?style=social&label=@rstacruz)](https://github.com/rstacruz) &nbsp;
-[![](https://img.shields.io/twitter/follow/rstacruz.svg?style=social&label=@rstacruz)](https://twitter.com/rstacruz)
+The original [NProgress](http://github.com/rstacruz) is authored and maintained by [Rico Sta. Cruz](http://ricostacruz.com) with help from his [contributors](http://github.com/rstacruz/nprogress/contributors). You will probably acknowledge that I've taken many definitions straight from Rico's source code comments, and also taken some design ideas and styles from his project's website. But I've done it with the purpose of paying homage to him, not for plagiarism!
