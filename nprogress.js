@@ -5,6 +5,11 @@
 
 * by Sílvia Mur Blanch aka PchiwaN
 * http://github.com/pchiwan/nprogress
+*
+* and edited by Arianne Macena aka Anne/Annezao ┬┴┬┴┤･ω･)ﾉ
+* on 2018.
+* https://github.com/annemacena/nprogress
+*
 ***********************************************/
 
 function NProgress (_settings) {
@@ -23,7 +28,11 @@ function NProgress (_settings) {
     /// <para> ---------------------------------------------- </para>
     /// <para> trickleSpeed:Integer -> How often to trickle, in milliseconds.</para>
     /// <para> ---------------------------------------------- </para>
-    /// <para> showSpinner:Boolean -> Set to true to turn on the loading spinner. False by default</para>
+    /// <para> barSelector:String -> Set HTML attribute name and value to indicates the bar element. Default: '[role="spinner"]'.</para>
+    /// <para> ---------------------------------------------- </para>
+    /// <para> spinnerSelector:String -> Set HTML attribute name and value to indicates the spinner element. Default: '[role="spinner"]'.</para>
+    /// <para> ---------------------------------------------- </para>
+    /// <para> overlaySelector:String -> Set HTML attribute name and value to indicates the overlay element. Default: '[role="spinner"]'.</para>
     /// <para> ---------------------------------------------- </para>
     /// <para> container:String -> jQuery selector of the container DOM element. The progress bar will be PREPENDED TO this container. If not set 
     ///        -or if the selector is 'body'- the progress bar will be inserted BEFORE the body.</para>
@@ -35,6 +44,12 @@ function NProgress (_settings) {
     /// <para> randomTrickle:Boolean -> Set to true to use random trickle increments. False by default.</para>
     /// <para> ---------------------------------------------- </para>
     /// <para> startOnInit:Boolean -> Set to true to start running the progress bar's progress upon instantiation. False by default.</para>
+    /// <para> ---------------------------------------------- </para>
+    /// <para> showSpinner:Boolean -> Set to true to turn on the loading spinner. True by default</para>
+    /// <para> ---------------------------------------------- </para>
+    /// <para> showOverlay:Boolean -> Set to true to turn on the overlay. False by default.</para>
+    /// <para> ---------------------------------------------- </para>
+    /// <para> customClass:String -> Used to set up a css class on nprogress element.</para>
     /// <para> ---------------------------------------------- </para>
     /// <para> template:String -> HTML markup used to render the progress bar.</para>
     /// </param>
@@ -49,19 +64,24 @@ function NProgress (_settings) {
         trickle: true,
         trickleRate: 0.02,
         trickleSpeed: 800,
-        showSpinner: false,
+        barSelector: '[role="bar"]',
+        spinnerSelector: '[role="spinner"]',
+        overlaySelector: '[role="overlay-np"]',
         container: 'body',
         renderOnInit: false,
         removeOnFinish: true,
         randomTrickle: false,
         startOnInit: false,
-        template: '<div class="bar" role="bar"><div class="peg"></div></div>'
+        showSpinner: true,
+        showOverlay: false,
+        customClass: "",
+        template: '<div role="overlay-np" class="overlay-np"></div><div class="bar" role="bar"><div class="peg"></div></div><div class="spinner" role="spinner"><div class="spinner-icon"></div></div>'
     };
 
     this.settings = $.extend({}, Settings, _settings);
 
     this.version = '0.1.2';
-    this.id = self.settings.container === 'body' ? '#nprogress' : self.settings.container + ' #nprogress';
+    this.id = self.settings.container === 'body' ? '#nprogress-master' : self.settings.container + ' #nprogress';
 
     //the DOM element itself
     var $progress;
@@ -75,9 +95,17 @@ function NProgress (_settings) {
     * NProgress.configure({
     * minimum: 0.1
     * });
+    
+        @annemacena edit
+        Just bring back the Rico's original code
+
     */
     this.configure = function (options) {
-        $.extend(Settings, options);
+           var key, value;
+            for (key in options) {
+              value = options[key];
+              if (value !== undefined && options.hasOwnProperty(key)) self.settings[key] = value;
+            }
         return this;
     };
 
@@ -99,7 +127,7 @@ function NProgress (_settings) {
         self.status = (n === 1 ? null : n);
 
         render(!started);
-        var $bar = $progress.find('[role="bar"]'),
+        var $bar = $progress.find(self.settings.barSelector),
             speed = self.settings.speed,
             ease = self.settings.easing;
 
@@ -144,6 +172,15 @@ function NProgress (_settings) {
     */
     this.start = function () {
         self.set(0);
+
+        /*
+            @annemacena edit
+            Fill the HTML div.overlay-np with the html&body element height;
+            so, these elements NEED to have 100% height to work well
+        */
+        if (self.settings.showOverlay) {
+            $(".overlay-np").css("height", $("html, body").height())
+        }
 
         setTimeout(function () {
             $progress.css({ transition: 'none', opacity: 1 });
@@ -211,7 +248,7 @@ function NProgress (_settings) {
     */
     this.reset = function () {
         self.status = 0;
-        var $bar = $progress.find('[role="bar"]');
+        var $bar = $progress.find(self.settings.barSelector);
         $bar.css(barPositionCSS(0, self.settings.speed, self.settings.easing));
     };
 
@@ -293,29 +330,46 @@ function NProgress (_settings) {
         if (isRendered()) { return $progress; }
         $('html').addClass('nprogress-busy');
 
-        $progress = $('<div id="nprogress" class="nprogress"></div>');        
+        $progress = $('<div id="nprogress" class="nprogress"></div>');
+        /*
+            @annemacena edit
+            Append that CSS class you put on `customClass` setting
+        */
+        $progress.addClass(self.settings.customClass);
         $progress.append($(self.settings.template));
 
         var perc = fromStart ? 0 : toBarPerc(self.status || 0);
 
         if (window.Modernizr && Modernizr.csstransforms) {
-            $progress.find('[role="bar"]').css({
+            $progress.find(self.settings.barSelector).css({
                 transition: 'all 0 linear',
                 transform: 'scaleX(' + perc + ')'
             });
         } else {
-            $progress.find('[role="bar"]').css('width', '0%');
+            $progress.find(self.settings.barSelector).css('width', '0%');
         }
 
         if (!self.settings.showSpinner) {
-            $progress.find('[role="spinner"]').remove();
+            $progress.find(self.settings.spinnerSelector).remove();
+        }
+
+        if (!self.settings.showOverlay) {
+            $progress.find(self.settings.overlaySelector).remove();
         }
 
         //finally attach to the DOM
         if (self.settings.container === 'body') {
+
+            /*
+                @annemacena edit
+                I updated with this bcz was crashing when then master nprogress was start
+                after others nprogress on body HTML element
+            */
+            $progress.attr("id", "nprogress-master");
+
             //if the container is the body, place progress bar right before it
             $(self.settings.container).before($progress);
-            $progress.find('[role="bar"]').css('position', 'fixed');
+            $progress.find(self.settings.barSelector).css('position', 'fixed');
             $progress.find('.peg').show();
         } else {
             //otherwise, prepend the progress bar to the container element
