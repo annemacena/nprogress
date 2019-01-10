@@ -7,7 +7,7 @@ So, if you want to know how use it, you should check out the installation and co
 
 # But what's new? 🙄
 
-Well, I was using that tool on project at my work and we were need to use some silly things like a spinner ![spinner](https://s15.postimg.cc/3oiiocc1n/Rolling-1s-20px.gif), a overlay effect and a setting to put some CSS class.
+Well, I was using that tool on a project at my work and we were need to use some silly things like a spinner ![spinner](https://s15.postimg.cc/3oiiocc1n/Rolling-1s-20px.gif), a overlay effect and a setting to put some CSS classes.
 
 ### New settings
 
